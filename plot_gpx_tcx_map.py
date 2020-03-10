@@ -1,22 +1,21 @@
-import ggps
-import os
-import time
-from xml.sax._exceptions import SAXParseException
+import os, time, ggps
 from progiter import ProgIter as prog
+import scipy.cluster.hierarchy as hcluster
 import pandas as pd
+import numpy as np
 import plotly.express as px
 import plotly
 from geopy.geocoders import Nominatim as nom
-import numpy as np
-import scipy.cluster.hierarchy as hcluster
 from collections import defaultdict
 
+
+# Get filenames
 onlyfiles = [f for f in os.listdir("./") if os.path.isfile(os.path.join("./", f))]
 
-points = ["latitudedegrees", "longitudedegrees"]
 
-data = dict()
-errors = 0
+# Read files to database
+points = ["latitudedegrees", "longitudedegrees"]
+data, errors = dict(), 0
 for filename in prog(onlyfiles[:]):
 
     if filename[-3:] == "gpx":
@@ -41,16 +40,13 @@ for filename in prog(onlyfiles[:]):
                 trackpoint = handler.trackpoints[i].values
                 exersize.append({key: float(trackpoint[key]) for key in points})
             data[handler.first_time] = exersize
-    except ValueError:
-        errors += 1
-    except KeyError:
-        errors += 1
-    except SAXParseException:
+    except:
         errors += 1
 
 print(f"processed {len(data)} with {errors} errors")
 
 
+# Define localizer object (Max ~1 query per second)
 class loca(object):
     def __init__(self, name):
         self.keys = ["city", "town", "village", "city_district", "county", "nature_reserve"]
@@ -68,6 +64,7 @@ class loca(object):
 
 locator = loca("strava_output_mapper3")
 
+# Get location longs and lats
 locs = []
 for i, (key, value) in enumerate(data.items()):
     try:
@@ -77,14 +74,18 @@ for i, (key, value) in enumerate(data.items()):
         print(i, key, value)
 
 
-
+# Cluster by distance
 ids = hcluster.fclusterdata(np.array(locs), 0.3, criterion="distance")
 id_locs = defaultdict(list)
 print(f"got {len(set(ids))} clusters")
 
+
+# Save coordinates per location id
 for loc, id in zip(locs, ids):
     id_locs[id].append(loc)
 
+
+# Get location name and save coordinate per name
 id_cluster, cluster_locs = dict(), dict()
 for id, id_loc in id_locs.items():
     num = len(id_loc)
@@ -95,6 +96,7 @@ for id, id_loc in id_locs.items():
     cluster_locs[cluster] = dict(lat=lat, lon=lon)
 
 
+# Save data per location
 print("saving database")
 df = pd.DataFrame(columns=points)
 for value, id in zip(data.values(), ids):
@@ -104,6 +106,7 @@ for value, id in zip(data.values(), ids):
     df = df.append(ex, ignore_index=True)
 
 
+# Plot per location name
 points = 100000
 for cluster in id_cluster.values():
     subdf = df[df['location'] == cluster]
@@ -120,12 +123,3 @@ for cluster in id_cluster.values():
     plotly.offline.plot(fig, filename=f'html/{cluster}.html', auto_open=False)
 
     time.sleep(1)
-#
-# subdf = df[df['location'] == "Eindhoven"]
-# fig = px.density_mapbox(subdf[::2], lat='latitudedegrees', lon='longitudedegrees', z = "z", radius=1,
-#                         center=cluster_locs["Eindhoven"], zoom=12,
-#                         mapbox_style="carto-darkmatter", color_continuous_scale=px.colors.sequential.Viridis)
-#
-# if not os.path.exists("html"):
-#     os.mkdir("html")
-# plotly.offline.plot(fig, filename='Eindhoven2.html', auto_open=False)
