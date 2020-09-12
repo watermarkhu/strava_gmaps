@@ -1,3 +1,6 @@
 *.gpx
 *.tcx
 html/
+__pycache__/
+.ipynb_checkpoints/
+api_key
