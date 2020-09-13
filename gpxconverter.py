@@ -41,7 +41,7 @@ def die(error):
 # main -----------------------------------------
 
 
-def main(UNZIPPED_FOLDER, STRAVA_ACTIVITIES_SUBFOLDER, STRAVA_ACTIVITIES_FILE):
+def Main(UNZIPPED_FOLDER, STRAVA_ACTIVITIES_SUBFOLDER, STRAVA_ACTIVITIES_FILE):
 
     # assemble paths
     strava_unzipped_folder = os.path.join(".", UNZIPPED_FOLDER)
@@ -127,14 +127,12 @@ def main(UNZIPPED_FOLDER, STRAVA_ACTIVITIES_SUBFOLDER, STRAVA_ACTIVITIES_FILE):
                         filename_tcx=filename)
                     )
                     if not rc:
-                        print('error')
+                        print('error, check if gpsbabel is installed')
                     else:
                         os.remove(filename)
         
         print(line['Filename'].ljust(40, " ") + "| " + line["Activity Type"].ljust(13, " ") + "| " + str(line["Activity Name"])[:70])
         activities_type[line['Filename']] = line["Activity Type"]
-        
-
 
     return activities_type
 # run ------------------------------------------------------
