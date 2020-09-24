@@ -140,4 +140,4 @@ if __name__ == "__main__":
     UNZIPPED_FOLDER = "/mnt/d/Users/water_000/Downloads/export_25412727/"
     STRAVA_ACTIVITIES_SUBFOLDER = "/mnt/d/Users/water_000/Downloads/export_25412727/activities"
     STRAVA_ACTIVITIES_FILE = "/mnt/d/Users/water_000/Downloads/export_25412727/activities.csv"
-    main(UNZIPPED_FOLDER, STRAVA_ACTIVITIES_SUBFOLDER, STRAVA_ACTIVITIES_FILE)
+    Main(UNZIPPED_FOLDER, STRAVA_ACTIVITIES_SUBFOLDER, STRAVA_ACTIVITIES_FILE)
